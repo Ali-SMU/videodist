@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Video Distribution App</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="form-container">
+        <h2>Login to Your Account</h2>
+        <form id="loginForm">
+            <input type="text" id="loginUsername" placeholder="Username" required>
+            <input type="password" id="loginPassword" placeholder="Password" required>
+            
+            <!-- Role selection (can be optional if the role is assigned automatically) -->
+            <select id="role" required>
+                <option value="creator">Creator</option>
+                <option value="consumer">Consumer</option>
+            </select>
+
+            <button type="submit">Login</button>
+        </form>
+        <p>Don't have an account? <a href="signup.html">Sign up here</a></p>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+            const role = document.getElementById('role').value;  // Get the role from the dropdown
+
+            try {
+                const response = await fetch('http://localhost:3000/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password, role }) // Include role in the login request
+                });
+
+                if (!response.ok) {
+                    throw new Error('Login failed: ' + (await response.text())); // Capture and display the backend error
+                }
+
+                const data = await response.json();
+                localStorage.setItem('jwtToken', data.token); // Save token
+
+                // Redirect based on role
+                if (data.role === 'creator') {
+                    window.location.href = 'creator.html'; // Redirect to Creator page
+                } else if (data.role === 'consumer') {
+                    window.location.href = 'consumer.html'; // Redirect to Consumer page
+                } else {
+                    throw new Error('Unknown user role');
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        });
+    </script>
+</body>
+</html>

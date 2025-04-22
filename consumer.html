@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Videos - Consumer</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="form-container">
+        <h2>Available Videos</h2>
+        <button id="viewButton">View Videos</button>
+        <div id="videoList" class="video-list-container"></div> <!-- This will hold the video cards -->
+    </div>
+
+    <script>
+        document.getElementById('viewButton').addEventListener('click', async () => {
+            const token = localStorage.getItem('jwtToken');
+
+            if (!token) {
+                alert('Please log in first');
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:3000/view', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Unable to fetch videos');
+                }
+
+                const videos = await response.json();
+                const videoList = document.getElementById('videoList');
+                videoList.innerHTML = ''; // Clear any previous videos
+
+                videos.forEach(video => {
+                    const videoContainer = document.createElement('div');
+                    videoContainer.classList.add('video-card');
+
+                    const videoElement = document.createElement('video');
+                    videoElement.setAttribute('controls', '');
+                    videoElement.setAttribute('width', '100%');
+
+                    const source = document.createElement('source');
+                    source.setAttribute('src', video.url);
+                    source.setAttribute('type', 'video/mp4');
+                    videoElement.appendChild(source);
+
+                    const title = document.createElement('h3');
+                    title.textContent = video.title;
+
+                    const description = document.createElement('p');
+                    description.textContent = video.description;
+
+                    // Add title, description, and video player to the card
+                    videoContainer.appendChild(title);
+                    videoContainer.appendChild(description);
+                    videoContainer.appendChild(videoElement);
+
+                    // Append the video card to the list
+                    videoList.appendChild(videoContainer);
+                });
+            } catch (error) {
+                alert(error.message);
+            }
+        });
+    </script>
+</body>
+</html>

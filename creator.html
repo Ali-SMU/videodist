@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Video - Creator</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="form-container">
+        <h2>Upload Video</h2>
+        <form id="uploadForm">
+            <input type="file" id="videoFile" required>
+            <button type="submit">Upload Video</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', async (event) => {
+            event.preventDefault();  // Prevent form submission
+
+            const videoFile = document.getElementById('videoFile').files[0];  // Get the video file
+            const token = localStorage.getItem('jwtToken');  // Get JWT token from localStorage
+
+            if (!token) {
+                alert('Please log in first');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('video', videoFile);  // Append video to FormData
+
+            try {
+                const response = await fetch('http://localhost:3000/upload', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                    },
+                    body: formData,
+                });
+
+                if (!response.ok) {
+                    throw new Error('Video upload failed');
+                }
+
+                alert('Video uploaded successfully!');
+            } catch (error) {
+                alert(error.message);  // Display any error
+            }
+        });
+    </script>
+</body>
+</html>

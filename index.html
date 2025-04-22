@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Video Distribution App</title>
+</head>
+<body>
+
+  <h2>Login</h2>
+  <form id="loginForm">
+    <input type="text" id="loginUsername" placeholder="Username" required>
+    <input type="password" id="loginPassword" placeholder="Password" required>
+    <button type="submit">Login</button>
+  </form>
+
+  <h2>Sign Up</h2>
+  <form id="signupForm">
+    <input type="text" id="signupUsername" placeholder="Username" required>
+    <input type="password" id="signupPassword" placeholder="Password" required>
+    <select id="signupRole">
+      <option value="creator">Creator</option>
+      <option value="consumer">Consumer</option>
+    </select>
+    <button type="submit">Sign Up</button>
+  </form>
+
+  <h2>Upload Video (Creator only)</h2>
+  <form id="uploadForm">
+    <input type="file" id="videoFile" required>
+    <button type="submit">Upload Video</button>
+  </form>
+
+  <h2>View Videos (Consumer only)</h2>
+  <button id="viewButton">View Videos</button>
+
+  <script>
+    const apiUrl = 'http://localhost:3000'; // Backend URL
+
+    // Handle login
+    document.getElementById('loginForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const username = document.getElementById('loginUsername').value;
+      const password = document.getElementById('loginPassword').value;
+
+      try {
+        const response = await fetch(`${apiUrl}/login`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ username, password }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Login failed');
+        }
+
+        const data = await response.json();
+        localStorage.setItem('jwtToken', data.token); // Save the JWT token in local storage
+        alert('Login successful!');
+      } catch (error) {
+        alert(error.message);
+      }
+    });
+
+    // Handle sign up
+    document.getElementById('signupForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const username = document.getElementById('signupUsername').value;
+      const password = document.getElementById('signupPassword').value;
+      const role = document.getElementById('signupRole').value;
+
+      try {
+        const response = await fetch(`${apiUrl}/signup`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ username, password, role }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Signup failed');
+        }
+
+        alert('Sign-up successful!');
+      } catch (error) {
+        alert(error.message);
+      }
+    });
+
+    // Handle video upload (for creators)
+    document.getElementById('uploadForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const videoFile = document.getElementById('videoFile').files[0];
+      const token = localStorage.getItem('jwtToken'); // Get JWT token from local storage
+
+      if (!token) {
+        alert('Please log in first');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('video', videoFile);
+
+      try {
+        const response = await fetch(`${apiUrl}/upload`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`, // Send JWT token in the header
+          },
+          body: formData,
+        });
+
+        if (!response.ok) {
+          throw new Error('Video upload failed');
+        }
+
+        alert('Video uploaded successfully!');
+      } catch (error) {
+        alert(error.message);
+      }
+    });
+
+    // Handle view videos (for consumers)
+    document.getElementById('viewButton').addEventListener('click', async () => {
+      const token = localStorage.getItem('jwtToken'); // Get JWT token from local storage
+
+      if (!token) {
+        alert('Please log in first');
+        return;
+      }
+
+      try {
+        const response = await fetch(`${apiUrl}/view`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`, // Send JWT token in the header
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error('Unable to fetch videos');
+        }
+
+        const data = await response.json();
+        alert('Videos: ' + JSON.stringify(data)); // You can display the video list in a better format here
+      } catch (error) {
+        alert(error.message);
+      }
+    });
+  </script>
+
+</body>
+</html>
